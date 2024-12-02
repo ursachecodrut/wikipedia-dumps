@@ -1,0 +1,18 @@
+meta {
+  name: Page view
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/:project/all-access/all-agents/:title/monthly/:start_date/:end_date
+  body: none
+  auth: none
+}
+
+params:path {
+  end_date: 20241231
+  start_date: 20241201
+  title: April
+  project: simple.wikipedia
+}
