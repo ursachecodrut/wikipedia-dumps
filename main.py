@@ -4,8 +4,8 @@ import requests
 import os
 import sys
 
-DUMPS_BASE_DIR="./wikipedia_dumps"
-DUMPS_FILES="./wikipedia_dumps/*.xml.bz2"
+DUMPS_BASE_DIR="./chunks"
+DUMPS_FILES="./chunks/*.xml.bz2"
 START_DATE = "20241201"
 END_DATE = "20241231"
 
@@ -17,8 +17,11 @@ def fetch_pageviews(title, start_date = START_DATE, end_date = END_DATE):
     """
 
     url = f"{WIKI_API_BASE_URL}/{title}/monthly/{start_date}/{end_date}"
+    headers = {
+        'User-Agent': 'MyWikipediaScript/1.0 (test@gmail.com)'  
+    }
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         views = sum(item["views"] for item in data["items"])
@@ -76,17 +79,18 @@ def main():
     
     pages.show(10)
     
-    # titles_rdd = pages.select("title").rdd.flatMap(lambda row: [row.title])
-    #
+    titles_rdd = pages.select("title").rdd.flatMap(lambda row: [row.title])
+
     # pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title))
-    #
-    # pageviews_schema = StructType([
-    #     StructField("title", StringType(), True),
-    #     StructField("views", LongType(), True),
-    # ])
-    # pageviews_df = spark.createDataFrame(pageviews_rdd, schema=pageviews_schema)
-    #
-    # pageviews_df.show(10)
+    pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title)).take(10)
+
+    pageviews_schema = StructType([
+        StructField("title", StringType(), True),
+        StructField("views", LongType(), True),
+    ])
+    pageviews_df = spark.createDataFrame(pageviews_rdd, schema=pageviews_schema)
+
+    pageviews_df.show(10)
     
     
     spark.stop()

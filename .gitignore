@@ -1,1 +1,3 @@
-wikipedia_dumps/*
+dumps/*
+chunks/*
+.DS_Store
