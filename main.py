@@ -82,7 +82,7 @@ def main():
     titles_rdd = pages.select("title").rdd.flatMap(lambda row: [row.title])
 
     # pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title))
-    pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title)).take(10)
+    pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title)).take(100)
 
     pageviews_schema = StructType([
         StructField("title", StringType(), True),
@@ -90,7 +90,7 @@ def main():
     ])
     pageviews_df = spark.createDataFrame(pageviews_rdd, schema=pageviews_schema)
 
-    pageviews_df.show(10)
+    pageviews_df.show(100)
     
     
     spark.stop()
