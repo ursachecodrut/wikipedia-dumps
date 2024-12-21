@@ -81,6 +81,9 @@ def main():
     
     titles_rdd = pages.select("title").rdd.flatMap(lambda row: [row.title])
 
+    # # Save the titles RDD to a text file, one title per line
+    # titles_rdd.saveAsTextFile("titles.txt")
+
     # pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title))
     pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title)).take(100)
 
