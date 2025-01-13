@@ -1,41 +1,17 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, LongType, StringType
-import requests
+from insights import *
 import os
 import sys
 
 DUMPS_BASE_DIR="./chunks"
 DUMPS_FILES="./chunks/*.xml.bz2"
-START_DATE = "20241201"
-END_DATE = "20241231"
-
-WIKI_API_BASE_URL = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/simple.wikipedia/all-access/all-agents"
-
-def fetch_pageviews(title, start_date = START_DATE, end_date = END_DATE):
-    """
-    Fetch pageview data for a given page title using Wikimedia Pageviews API.
-    """
-
-    url = f"{WIKI_API_BASE_URL}/{title}/monthly/{start_date}/{end_date}"
-    headers = {
-        'User-Agent': 'MyWikipediaScript/1.0 (test@gmail.com)'  
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        views = sum(item["views"] for item in data["items"])
-        return (title, views)
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to fetch data for {title}: {e}")
-        return (title, None)
 
 def main():
     if not os.path.exists(DUMPS_BASE_DIR):
         print("Error: The 'wikipedia_dumps' folder does not exist. Please create it and add XML dump files.")
         sys.exit(1)
-
-        
+    
 
     spark = SparkSession.builder \
         .appName("Wikipedia dump parser") \
@@ -84,18 +60,18 @@ def main():
     # # Save the titles RDD to a text file, one title per line
     # titles_rdd.saveAsTextFile("titles.txt")
 
-    # pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title))
-    pageviews_rdd = titles_rdd.map(lambda title: fetch_pageviews(title)).take(100)
+    # Uncomment to view pageviews per article
+    # load_pageviews(spark, titles_rdd)
 
-    pageviews_schema = StructType([
-        StructField("title", StringType(), True),
-        StructField("views", LongType(), True),
-    ])
-    pageviews_df = spark.createDataFrame(pageviews_rdd, schema=pageviews_schema)
+    # Uncomment to view categories per article
+    # load_categories(spark, titles_rdd)
 
-    pageviews_df.show(100)
-    
-    
+    # Uncomment to view edits per article - might take a bit longer
+    # load_edits(spark, titles_rdd)
+
+    # Uncomment to view global trends
+    # load_global_trends(spark, titles_rdd)
+
     spark.stop()
 
 if __name__ == "__main__":
